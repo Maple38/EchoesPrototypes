@@ -8,7 +8,10 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private int raycastCount;
     private int _terrainLayerMask;
     [SerializeField] private bool enableBounces;
-    private HashSet<Vector2> _visiblePointsStandard;
+    private List<(Vector2, Color)> _visiblePoints;
+    private Color _pointColorStandard = Color.green;
+    private Color _pointColorBouncePoint = Color.yellow;
+    private Color _pointColorBounceEnd = Color.red;
     
     void Awake()
     {
@@ -25,7 +28,6 @@ public class SonarEmitter : MonoBehaviour
 
     void Sonar()
     {
-        _visiblePoints.Clear();
         List<Ray2D> bounceRays = new List<Ray2D>();
         List<Ray2D> rayList = new List<Ray2D>();
         float angleDeviation = (float)arcSize / raycastCount;
@@ -43,18 +45,20 @@ public class SonarEmitter : MonoBehaviour
             var hit = hitList[i];
             if (!hit.collider.CompareTag("SonarAbsorbs"))
             {
-                _visiblePoints.Add(hit.point);
+                var pointColor = _pointColorStandard;
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
                     bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(rayList[i].direction, hit.normal)));
+                    pointColor = _pointColorBouncePoint;
                 }
+                _visiblePoints.Add((hit.point, pointColor));
             }
         }
 
         if (enableBounces)
             foreach (var raycastHit2D in FireRays(bounceRays))
             {
-                _visiblePointsBounces.Add(raycastHit2D.point);
+                _visiblePoints.Add((raycastHit2D.point, _pointColorBounceEnd));
             }
     }
 
@@ -72,15 +76,9 @@ public class SonarEmitter : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
-        foreach (var point in _visiblePoints)
+        foreach (var (point, color) in _visiblePoints)
         {
-            Gizmos.DrawSphere(point, 1);
-        }
-        
-        
-        foreach (var point in _visiblePointsBounces)
-        {
+            Gizmos.color = color;
             Gizmos.DrawSphere(point, 1);
         }
     }
