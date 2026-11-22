@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,7 +11,8 @@ public class SonarEmitter : MonoBehaviour
     private Color _pointColorStandard = Color.green;
     private Color _pointColorBouncePoint = Color.yellow;
     private Color _pointColorBounceEnd = Color.red;
-    
+    private Mesh _arcGizmoMesh;
+
     void Awake()
     {
         _terrainLayerMask = LayerMask.NameToLayer("Terrain");
@@ -51,6 +51,7 @@ public class SonarEmitter : MonoBehaviour
                     bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(rayList[i].direction, hit.normal)));
                     pointColor = _pointColorBouncePoint;
                 }
+
                 _visiblePoints.Add((hit.point, pointColor));
             }
         }
@@ -76,10 +77,24 @@ public class SonarEmitter : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        foreach (var (point, color) in _visiblePoints)
-        {
-            Gizmos.color = color;
-            Gizmos.DrawSphere(point, 1);
-        }
+        Gizmos.color = Color.green;
+        Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
+
+        // foreach (var (point, color) in _visiblePoints)
+        // {
+        //     Gizmos.color = color;
+        //     Gizmos.DrawSphere(point, 1);
+        // }
+    }
+
+    private void OnValidate()
+    {
+        Vector2 arcPos1 = Vector2.right * 5;
+        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, arcSize - 90) * arcPos1;
+        _arcGizmoMesh = new Mesh();
+        _arcGizmoMesh.vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 };
+        _arcGizmoMesh.triangles = new [] { 0, 1, 2 };
+        _arcGizmoMesh.RecalculateNormals();
+        _arcGizmoMesh.
     }
 }
