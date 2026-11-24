@@ -91,11 +91,11 @@ public class SonarEmitter : MonoBehaviour
     {
         Gizmos.color = Color.darkGreen - new Color(0f, 0f, 0f, 0.8f);
         Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
-
+        
         Gizmos.color = Color.deepPink;
         foreach (var ray in _rayList)
         {
-            Gizmos.DrawRay(new Ray(ray.origin, ray.direction));
+            Gizmos.DrawRay(new Ray(ray.origin, ray.direction * rayDistance));
         }
         
         // foreach (var (point, color) in _visiblePoints)
