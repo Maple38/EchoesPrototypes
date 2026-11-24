@@ -10,11 +10,13 @@ public class SonarEmitter : MonoBehaviour
 
     private int _terrainLayerMask;
     [SerializeField] private bool enableBounces;
-    private List<(Vector2, Color)> _visualizePoints;
-    private List<((Vector2, Vector2?), Color)> _visualizeLines;
-    private Color _visualizeColorStandard;
-    private Color _visualizeColorAbsorb;
-    private Color _visualizeColorBounce;
+    private List<(Vector2, Color)> _drawPoints;
+    private List<(Vector2, Vector2)> _drawBounceRays;
+    private List<(Vector2, Vector2)> _drawOutlines;
+    private Color _colorStandard;
+    private Color _colorAbsorb;
+    private Color _colorBounce;
+    private Color _colorOutline;
     private Mesh _arcGizmoMesh;
     private Ray2D[] _rayGizmos;
     private List<Ray2D> _rayList;
@@ -30,10 +32,11 @@ public class SonarEmitter : MonoBehaviour
         {
             Sonar();
         }
-    }
 
-    void RenderVisible()
-    {
+        foreach (var (start, end) in _drawOutlines)
+        {
+            Debug.DrawLine(start, end, _colorOutline);
+        }
     }
 
     List<Ray2D> PopulateRays()
@@ -55,8 +58,9 @@ public class SonarEmitter : MonoBehaviour
     {
         List<Ray2D> bounceRays = new List<Ray2D>();
         List<Ray2D> rayList = PopulateRays();
-        _visualizePoints.Clear();
-        _visualizeLines.Clear();
+        _drawPoints.Clear();
+        _drawBounceRays.Clear();
+        _drawOutlines.Clear();
         bounceRays.Clear();
         var hitList = FireRays(rayList);
 
@@ -66,24 +70,31 @@ public class SonarEmitter : MonoBehaviour
             if (hit)
             {
                 Color pointColor = hit.collider.CompareTag("SonarAbsorbs")
-                    ? _visualizeColorAbsorb
-                    : _visualizeColorStandard;
+                    ? _colorAbsorb
+                    : _colorStandard;
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
                     bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(rayList[i].direction, hit.normal)));
                 }
 
-                _visualizePoints.Add((hit.point, pointColor));
+                _drawPoints.Add((hit.point, pointColor));
             }
         }
 
         if (enableBounces)
-            foreach (var raycastHit2D in FireRays(bounceRays))
+        {
+            var bounceHits = FireRays(bounceRays);
+            for (int i = 0; i < bounceHits.Count; i++)
             {
-                _visiblePoints.Add((raycastHit2D.point, _pointColorBounceEnd));
+                if (bounceHits[i])
+                {
+                    _drawBounceRays.Add((bounceHits[i].point, bounceRays[i].origin));
+                }
             }
+        }
     }
 
+    
     List<RaycastHit2D> FireRays(List<Ray2D> rays)
     {
         List<RaycastHit2D> raycastHits = new List<RaycastHit2D>();
@@ -107,11 +118,17 @@ public class SonarEmitter : MonoBehaviour
             Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
         }
 
-        // foreach (var (point, color) in _visiblePoints)
-        // {
-        //     Gizmos.color = color;
-        //     Gizmos.DrawSphere(point, 1);
-        // }
+        foreach (var (point, color) in _drawPoints)
+        {
+            Gizmos.color = color;
+            Gizmos.DrawSphere(point, 0.25f);
+        }
+
+        Gizmos.color = _colorBounce;
+        foreach (var (start, end) in _drawBounceRays)
+        {
+            Gizmos.DrawLine(start, end);
+        }
     }
 
     private void OnValidate()
