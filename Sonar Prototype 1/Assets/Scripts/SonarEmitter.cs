@@ -27,6 +27,9 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
+    Ray2D CreateRay(float angleOffset) => new Ray2D(transform.position,
+        Quaternion.Euler(0f, 0f, angleOffset + arcAngleOffset) * Vector2.up);
+    
     void Sonar()
     {
         List<Ray2D> bounceRays = new List<Ray2D>();
@@ -35,8 +38,7 @@ public class SonarEmitter : MonoBehaviour
 
         for (var i = 0; i < raycastCount; i++)
         {
-            rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (angleDeviation * i) + arcAngleOffset) * Vector2.right));
+            rayList.Add(CreateRay((angleDeviation * i)));
         }
 
         var hitList = FireRays(rayList);
