@@ -224,7 +224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SonarEmitter
   arcSize: 90
-  raycastCount: 9
+  raycastCount: 2
   arcAngleOffset: 0
   rayDistance: 20
   enableBounces: 0

@@ -36,11 +36,11 @@ public class SonarEmitter : MonoBehaviour
         _rayList ??= new List<Ray2D>();
         _rayList.Clear();
         float angleDeviation = arcSize / raycastCount;
-        float rayOffset = (arcSize % raycastCount) / 2;
+        float rayOffset = arcAngleOffset + (angleDeviation / 2);
         for (var i = 0; i < raycastCount; i++)
         {
             _rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (angleDeviation * i) + arcAngleOffset + rayOffset) * Vector2.right * rayDistance));
+                Quaternion.Euler(0f, 0f, (angleDeviation * i) + rayOffset) * Vector2.right * rayDistance));
         }
         return _rayList;
     }
