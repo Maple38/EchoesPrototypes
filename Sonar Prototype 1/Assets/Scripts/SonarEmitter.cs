@@ -5,6 +5,7 @@ public class SonarEmitter : MonoBehaviour
 {
     [SerializeField] private int arcSize;
     [SerializeField] private int raycastCount;
+    [SerializeField] private int arcAngleOffset;
     private int _terrainLayerMask;
     [SerializeField] private bool enableBounces;
     private List<(Vector2, Color)> _visiblePoints;
@@ -35,7 +36,7 @@ public class SonarEmitter : MonoBehaviour
         for (var i = 0; i < raycastCount; i++)
         {
             rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (angleDeviation * i) - 90) * Vector2.up));
+                Quaternion.Euler(0f, 0f, (angleDeviation * i) + arcAngleOffset) * Vector2.right));
         }
 
         var hitList = FireRays(rayList);
@@ -90,7 +91,7 @@ public class SonarEmitter : MonoBehaviour
     private void OnValidate()
     {
         Vector2 arcPos1 = Vector2.right * 5;
-        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, arcSize + 90) * arcPos1;
+        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, arcSize + arcAngleOffset) * arcPos1;
         _arcGizmoMesh = new Mesh();
         _arcGizmoMesh.vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 };
         _arcGizmoMesh.triangles = new [] { 0, 2, 1 };
