@@ -90,11 +90,10 @@ public class SonarEmitter : MonoBehaviour
     private void OnValidate()
     {
         Vector2 arcPos1 = Vector2.right * 5;
-        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, arcSize - 90) * arcPos1;
+        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, arcSize + 90) * arcPos1;
         _arcGizmoMesh = new Mesh();
         _arcGizmoMesh.vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 };
-        _arcGizmoMesh.triangles = new [] { 0, 1, 2 };
+        _arcGizmoMesh.triangles = new [] { 0, 2, 1 };
         _arcGizmoMesh.RecalculateNormals();
-        _arcGizmoMesh.
     }
 }
