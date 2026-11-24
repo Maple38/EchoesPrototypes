@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SonarEmitter : MonoBehaviour
 {
@@ -28,14 +29,17 @@ public class SonarEmitter : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             Sonar();
         }
 
-        foreach (var (start, end) in _drawOutlines)
+        if (_drawOutlines != null)
         {
-            Debug.DrawLine(start, end, _colorOutline);
+            foreach (var (start, end) in _drawOutlines)
+            {
+                Debug.DrawLine(start, end, _colorOutline);
+            }
         }
     }
 
@@ -58,10 +62,9 @@ public class SonarEmitter : MonoBehaviour
     {
         List<Ray2D> bounceRays = new List<Ray2D>();
         List<Ray2D> rayList = PopulateRays();
-        _drawPoints.Clear();
-        _drawBounceRays.Clear();
-        _drawOutlines.Clear();
-        bounceRays.Clear();
+        _drawPoints?.Clear();
+        _drawBounceRays?.Clear();
+        _drawOutlines?.Clear();
         var hitList = FireRays(rayList);
 
         for (var i = 0; i < raycastCount; i++)
@@ -118,16 +121,18 @@ public class SonarEmitter : MonoBehaviour
             Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
         }
 
-        foreach (var (point, color) in _drawPoints)
+        if (_drawPoints != null) foreach (var (point, color) in _drawPoints)
         {
             Gizmos.color = color;
             Gizmos.DrawSphere(point, 0.25f);
         }
-
-        Gizmos.color = _colorBounce;
-        foreach (var (start, end) in _drawBounceRays)
+        if (_drawBounceRays != null)
         {
-            Gizmos.DrawLine(start, end);
+            Gizmos.color = _colorBounce;
+            foreach (var (start, end) in _drawBounceRays)
+            {
+                Gizmos.DrawLine(start, end);
+            }
         }
     }
 
