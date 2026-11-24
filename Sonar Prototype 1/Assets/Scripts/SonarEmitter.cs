@@ -40,7 +40,7 @@ public class SonarEmitter : MonoBehaviour
         for (var i = 0; i < raycastCount; i++)
         {
             _rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (angleDeviation * i) + rayOffset) * Vector2.right * rayDistance));
+                Quaternion.Euler(0f, 0f, (angleDeviation * i) + rayOffset) * Vector2.right));
         }
         return _rayList;
     }
@@ -81,7 +81,7 @@ public class SonarEmitter : MonoBehaviour
         foreach (var ray2D in rays)
         {
             raycastHits.Add(Physics2D.Raycast(ray2D.origin, ray2D.direction,
-                100, _terrainLayerMask));
+                rayDistance, _terrainLayerMask));
         }
 
         return raycastHits;
@@ -95,7 +95,7 @@ public class SonarEmitter : MonoBehaviour
         Gizmos.color = Color.deepPink;
         foreach (var ray in _rayList)
         {
-            Gizmos.DrawRay(new Ray(ray.origin, ray.direction * rayDistance));
+            Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
         }
         
         // foreach (var (point, color) in _visiblePoints)

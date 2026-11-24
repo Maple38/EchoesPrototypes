@@ -226,7 +226,7 @@ MonoBehaviour:
   arcSize: 90
   raycastCount: 10
   arcAngleOffset: -15
-  rayDistance: 10
+  rayDistance: 15
   enableBounces: 0
 --- !u!1 &256372576
 GameObject:
