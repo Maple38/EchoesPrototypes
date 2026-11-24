@@ -13,6 +13,7 @@ public class SonarEmitter : MonoBehaviour
     private Color _pointColorBouncePoint = Color.yellow;
     private Color _pointColorBounceEnd = Color.red;
     private Mesh _arcGizmoMesh;
+    private Vector2[] _rayGizmos;
 
     void Awake()
     {
@@ -26,21 +27,24 @@ public class SonarEmitter : MonoBehaviour
             Sonar();
         }
     }
-
-    Ray2D CreateRay(float angleOffset) => new Ray2D(transform.position,
-        Quaternion.Euler(0f, 0f, angleOffset + arcAngleOffset) * Vector2.up);
+    
+    List<Ray2D> PopulateRays()
+    {
+        List<Ray2D> rayList = new List<Ray2D>();
+        float angleDeviation = (float)arcSize / raycastCount;
+        for (var i = 0; i < raycastCount; i++)
+        {
+            rayList.Add(new Ray2D(transform.position,
+                Quaternion.Euler(0f, 0f, (angleDeviation * i) + arcAngleOffset) * Vector2.up));
+        }
+        return rayList;
+    }
     
     void Sonar()
     {
         List<Ray2D> bounceRays = new List<Ray2D>();
-        List<Ray2D> rayList = new List<Ray2D>();
-        float angleDeviation = (float)arcSize / raycastCount;
-
-        for (var i = 0; i < raycastCount; i++)
-        {
-            rayList.Add(CreateRay((angleDeviation * i)));
-        }
-
+        List<Ray2D> rayList = PopulateRays();
+        
         var hitList = FireRays(rayList);
 
         for (var i = 0; i < raycastCount; i++)
@@ -100,5 +104,9 @@ public class SonarEmitter : MonoBehaviour
         _arcGizmoMesh.vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 };
         _arcGizmoMesh.triangles = new [] { 0, 1, 2 };
         _arcGizmoMesh.RecalculateNormals();
+
+        _rayGizmos = new Vector2[raycastCount];   
+
+
     }
 }
