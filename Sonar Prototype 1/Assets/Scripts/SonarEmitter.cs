@@ -11,9 +11,9 @@ public class SonarEmitter : MonoBehaviour
 
     private int _terrainLayerMask;
     [SerializeField] private bool enableBounces;
-    private List<(Vector2, Color)> _drawPoints;
-    private List<(Vector2, Vector2)> _drawBounceRays;
-    private List<(Vector2, Vector2)> _drawOutlines;
+    private readonly List<(Vector2, Color)> _drawPoints = new List<(Vector2, Color)>();
+    private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
+    private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
     private Color _colorStandard;
     private Color _colorAbsorb;
     private Color _colorBounce;
@@ -43,7 +43,7 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
-    List<Ray2D> PopulateRays()
+    void PopulateRays()
     {
         _rayList ??= new List<Ray2D>();
         _rayList.Clear();
@@ -54,18 +54,17 @@ public class SonarEmitter : MonoBehaviour
             _rayList.Add(new Ray2D(transform.position,
                 Quaternion.Euler(0f, 0f, (angleDeviation * i) + rayOffset) * Vector2.right));
         }
-
-        return _rayList;
     }
 
     void Sonar()
     {
+        Debug.Log("Sonar triggered");
         List<Ray2D> bounceRays = new List<Ray2D>();
-        List<Ray2D> rayList = PopulateRays();
+        PopulateRays();
         _drawPoints?.Clear();
         _drawBounceRays?.Clear();
         _drawOutlines?.Clear();
-        var hitList = FireRays(rayList);
+        var hitList = FireRays(_rayList);
 
         for (var i = 0; i < raycastCount; i++)
         {
@@ -77,13 +76,13 @@ public class SonarEmitter : MonoBehaviour
                     : _colorStandard;
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
-                    bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(rayList[i].direction, hit.normal)));
+                    bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(_rayList[i].direction, hit.normal)));
                 }
 
                 _drawPoints.Add((hit.point, pointColor));
             }
         }
-
+        
         if (enableBounces)
         {
             var bounceHits = FireRays(bounceRays);
@@ -97,7 +96,7 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
-    
+
     List<RaycastHit2D> FireRays(List<Ray2D> rays)
     {
         List<RaycastHit2D> raycastHits = new List<RaycastHit2D>();
@@ -121,11 +120,16 @@ public class SonarEmitter : MonoBehaviour
             Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
         }
 
-        if (_drawPoints != null) foreach (var (point, color) in _drawPoints)
+        if (_drawPoints != null)
         {
-            Gizmos.color = color;
-            Gizmos.DrawSphere(point, 0.25f);
+            foreach (var (point, color) in _drawPoints)
+
+            {
+                Gizmos.color = color;
+                Gizmos.DrawSphere(point, 0.25f);
+            }
         }
+
         if (_drawBounceRays != null)
         {
             Gizmos.color = _colorBounce;
@@ -142,11 +146,13 @@ public class SonarEmitter : MonoBehaviour
         Vector2 arcVectorInitial = new Vector2(0.5f, 0.5f) * 5;
         Vector2 arcPos1 = Quaternion.Euler(0f, 0f, halfArc + arcAngleOffset) * arcVectorInitial;
         Vector2 arcPos2 = Quaternion.Euler(0f, 0f, -halfArc + arcAngleOffset) * arcVectorInitial;
-        _arcGizmoMesh = new Mesh();
-        _arcGizmoMesh.vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 };
-        _arcGizmoMesh.triangles = new[] { 0, 1, 2 };
+        _arcGizmoMesh = new Mesh
+        {
+            vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 },
+            triangles = new[] { 0, 1, 2 }
+        };
         _arcGizmoMesh.RecalculateNormals();
 
-        _rayList = PopulateRays();
+        PopulateRays();
     }
 }
