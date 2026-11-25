@@ -47,18 +47,17 @@ public class SonarEmitter : MonoBehaviour
     {
         _rayList ??= new List<Ray2D>();
         _rayList.Clear();
-        float angleDeviation = arcSize / raycastCount;
-        float rayOffset = arcAngleOffset + (angleDeviation / 2);
+        float angleGap = arcSize / (raycastCount + 1);
+        var offset = (arcSize / 2) + arcAngleOffset;
         for (var i = 0; i < raycastCount; i++)
         {
             _rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (angleDeviation * i) + rayOffset) * Vector2.right));
+                Quaternion.Euler(0f, 0f, (-angleGap * (i+1) + offset)) * Vector2.up));
         }
     }
 
     void Sonar()
     {
-        Debug.Log("Sonar triggered");
         List<Ray2D> bounceRays = new List<Ray2D>();
         PopulateRays();
         _drawPoints?.Clear();
@@ -142,10 +141,10 @@ public class SonarEmitter : MonoBehaviour
 
     private void OnValidate()
     {
-        float halfArc = arcSize / 2;
-        Vector2 arcVectorInitial = new Vector2(0.5f, 0.5f) * 5;
-        Vector2 arcPos1 = Quaternion.Euler(0f, 0f, halfArc + arcAngleOffset) * arcVectorInitial;
-        Vector2 arcPos2 = Quaternion.Euler(0f, 0f, -halfArc + arcAngleOffset) * arcVectorInitial;
+        var halfArc = arcSize / 2;
+        var arcVectorInitial = Vector2.up * 2;
+        Vector2 arcPos1 = Quaternion.Euler(0, 0, arcAngleOffset + halfArc) * arcVectorInitial;
+        Vector2 arcPos2 = Quaternion.Euler(0, 0, arcAngleOffset - halfArc) * arcVectorInitial;
         _arcGizmoMesh = new Mesh
         {
             vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 },

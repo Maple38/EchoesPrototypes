@@ -223,9 +223,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfbbdb9ecff6a4befbfda7cdf4483f00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SonarEmitter
-  arcSize: 90
-  raycastCount: 10
-  arcAngleOffset: -15
+  arcSize: 100
+  raycastCount: 1
+  arcAngleOffset: -55
   rayDistance: 15
   enableBounces: 0
 --- !u!1 &256372576
