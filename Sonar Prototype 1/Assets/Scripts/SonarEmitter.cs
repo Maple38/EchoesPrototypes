@@ -81,6 +81,7 @@ public class SonarEmitter : MonoBehaviour
                 }
 
                 _drawPoints.Add((hit.point, pointColor));
+                _drawOutlines.Add(GetHighlightLine(hit));
             }
         }
 
@@ -92,6 +93,8 @@ public class SonarEmitter : MonoBehaviour
                 if (bounceHits[i])
                 {
                     _drawBounceRays.Add((bounceHits[i].point, bounceRays[i].origin));
+                    _drawPoints.Add((bounceHits[i].point, _colorBounce));
+                    _drawOutlines.Add(GetHighlightLine(bounceHits[i]));
                 }
             }
         }
@@ -132,6 +135,7 @@ public class SonarEmitter : MonoBehaviour
                     return probeHit.point;
                 }
             }
+
             return origin;
         }
 
