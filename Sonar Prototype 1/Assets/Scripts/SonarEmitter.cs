@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class SonarEmitter : MonoBehaviour
 {
@@ -11,10 +9,9 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private bool showRays;
     [SerializeField] private bool showBounceLines;
     [SerializeField] private bool showFailedBounces;
-    [SerializeField] private bool hideOtherObjects;
     [SerializeField] private bool showHits;
     [SerializeField] private float impactHighlightRadius;
-    [SerializeField] private float hitPointRadius;
+    [SerializeField] private bool hideOtherObjects;
 
     [Header("Sonar Parameters")]
     [SerializeField] private float arcSize;
@@ -28,16 +25,16 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private Color colorAbsorb = Color.red;
     [SerializeField] private Color colorBounce = Color.yellowNice;
     [SerializeField] private Color colorOutline = Color.turquoise;
-
-    private int _terrainLayerMask;
-    private readonly List<(Vector2, Color)> _drawPoints = new List<(Vector2, Color)>();
-    private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
-    private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
+    
+    private readonly List<(Vector2, Vector2)> _drawBounceRays = new();
+    private readonly List<(Vector2, Vector2)> _drawOutlines = new();
+    private readonly List<(Vector2, Color)> _drawPoints = new();
     private Mesh _arcGizmoMesh;
     private Mesh _arcGizmoMeshOld;
     private List<Ray2D> _rayList;
+    private int _terrainLayerMask;
 
-    void Awake()
+    private void Awake()
     {
         _terrainLayerMask = LayerMask.GetMask("Terrain");
         var terrainLayer = LayerMask.NameToLayer("Terrain");
@@ -53,7 +50,7 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
@@ -77,20 +74,79 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
-    void PopulateRays()
+    private void OnDrawGizmos()
     {
-        _rayList ??= new List<Ray2D>();
-        _rayList.Clear();
-        float angleGap = arcSize / (raycastCount + 1);
-        var offset = (arcSize / 2) + arcAngleOffset;
-        for (var i = 0; i < raycastCount; i++)
+        Gizmos.color = Color.darkGreen - new Color(0f, 0f, 0f, 0.8f);
+
+        if (showArc)
         {
-            _rayList.Add(new Ray2D(transform.position,
-                Quaternion.Euler(0f, 0f, (-angleGap * (i + 1) + offset)) * Vector2.up));
+            Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
+        }
+
+        Gizmos.color = Color.deepPink;
+        if (showRays)
+        {
+            foreach (var ray in _rayList)
+            {
+                Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * rayDistance);
+            }
+        }
+
+        if (showHits && _drawPoints != null)
+        {
+            foreach (var (point, color) in _drawPoints)
+
+            {
+                Gizmos.color = color;
+                Gizmos.DrawSphere(point, 0.05f);
+            }
         }
     }
 
-    bool ParseHit(RaycastHit2D hit)
+    private void OnValidate()
+    {
+        const int arcVertexGapTarget = 10;
+        var arcVertexCount = Mathf.CeilToInt(arcSize / arcVertexGapTarget);
+        var arcVertexGap = arcSize / (arcVertexCount - 1);
+
+        var arcVertices = new Vector3[arcVertexCount + 1];
+        arcVertices[0] = Vector3.zero;
+        for (var i = 0; i < arcVertexCount; i++)
+        {
+            arcVertices[i + 1] = Quaternion.Euler(0, 0, ArcVertexRotation(i)) * Vector2.up * 2;
+        }
+
+        var arcTriangles = new int[(arcVertexCount + 1) * 3];
+        for (var i = 0; i < arcVertexCount - 1; i++)
+        {
+            arcTriangles[i * 3] = 0;
+            arcTriangles[i * 3 + 1] = i + 1;
+            arcTriangles[i * 3 + 2] = i + 2;
+        }
+
+        _arcGizmoMesh = new Mesh { vertices = arcVertices, triangles = arcTriangles };
+        _arcGizmoMesh.RecalculateNormals();
+
+        PopulateRays();
+        return;
+
+        float ArcVertexRotation(int vertex) => arcAngleOffset + arcSize / 2 - arcVertexGap * vertex;
+    }
+
+    private void PopulateRays()
+    {
+        _rayList ??= new List<Ray2D>();
+        _rayList.Clear();
+        var angleGap = arcSize / (raycastCount + 1);
+        var offset = arcSize / 2 + arcAngleOffset;
+        for (var i = 0; i < raycastCount; i++)
+        {
+            _rayList.Add(new Ray2D(transform.position,
+                Quaternion.Euler(0f, 0f, -angleGap * (i + 1) + offset) * Vector2.up));
+        }
+    }
+
+    private bool ParseHit(RaycastHit2D hit)
     {
         if (hit)
         {
@@ -106,13 +162,13 @@ public class SonarEmitter : MonoBehaviour
         return false;
     }
 
-    void Sonar()
+    private void Sonar()
     {
-        List<Ray2D> bounceRays = new List<Ray2D>();
+        var bounceRays = new List<Ray2D>();
         PopulateRays();
-        _drawPoints?.Clear();
-        _drawBounceRays?.Clear();
-        _drawOutlines?.Clear();
+        _drawPoints.Clear();
+        _drawBounceRays.Clear();
+        _drawOutlines.Clear();
         var hitList = FireRays(_rayList);
 
         for (var i = 0; i < raycastCount; i++)
@@ -123,7 +179,7 @@ public class SonarEmitter : MonoBehaviour
                 _drawPoints.Add((hit.point, colorStandard));
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
-                    bounceRays.Add(new Ray2D(hit.point + (hit.normal * 0.01f),
+                    bounceRays.Add(new Ray2D(hit.point + hit.normal * 0.01f,
                         Vector2.Reflect(_rayList[i].direction, hit.normal)));
                 }
             }
@@ -132,7 +188,7 @@ public class SonarEmitter : MonoBehaviour
         if (enableBounces)
         {
             var bounceHits = FireRays(bounceRays);
-            for (int i = 0; i < bounceHits.Count; i++)
+            for (var i = 0; i < bounceHits.Count; i++)
             {
                 if (ParseHit(bounceHits[i]))
                 {
@@ -148,9 +204,9 @@ public class SonarEmitter : MonoBehaviour
     }
 
 
-    List<RaycastHit2D> FireRays(List<Ray2D> rays)
+    private List<RaycastHit2D> FireRays(List<Ray2D> rays)
     {
-        List<RaycastHit2D> raycastHits = new List<RaycastHit2D>();
+        var raycastHits = new List<RaycastHit2D>();
         foreach (var ray2D in rays)
         {
             raycastHits.Add(Physics2D.Raycast(ray2D.origin, ray2D.direction,
@@ -160,19 +216,19 @@ public class SonarEmitter : MonoBehaviour
         return raycastHits;
     }
 
-    (Vector2, Vector2) GetHighlightLine(RaycastHit2D hit)
+    private (Vector2, Vector2) GetHighlightLine(RaycastHit2D hit)
     {
-        List<RaycastHit2D> probeHitArray = new List<RaycastHit2D>();
+        var probeHitArray = new List<RaycastHit2D>();
         var rayContactFilter = new ContactFilter2D { useLayerMask = true, layerMask = _terrainLayerMask };
         var tangent = Vector2.Perpendicular(hit.normal);
-        Vector2 point1 = Probe(1);
-        Vector2 point2 = Probe(-1);
+        var point1 = Probe(1);
+        var point2 = Probe(-1);
 
         Vector2 Probe(int directionSign)
         {
             probeHitArray.Clear();
             var direction = tangent * directionSign;
-            var origin = hit.point + (impactHighlightRadius * direction);
+            var origin = hit.point + impactHighlightRadius * direction;
             Physics2D.Raycast(origin, -direction, rayContactFilter, probeHitArray, impactHighlightRadius);
             // _drawPoints.Add((origin, Color.mediumPurple));
             foreach (var probeHit in probeHitArray)
@@ -189,65 +245,4 @@ public class SonarEmitter : MonoBehaviour
 
         return (point1, point2);
     }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.darkGreen - new Color(0f, 0f, 0f, 0.8f);
-
-        if (showArc)
-        {
-            Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
-        }
-        
-        Gizmos.color = Color.deepPink;
-        if (showRays)
-        {
-            foreach (var ray in _rayList)
-            {
-                Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
-            }
-        }
-
-        if (showHits && _drawPoints != null)
-        {
-            foreach (var (point, color) in _drawPoints)
-
-            {
-                Gizmos.color = color;
-                Gizmos.DrawSphere(point, hitPointRadius);
-            }
-        }
-    }
-
-    private void OnValidate()
-    {
-        const int arcVertexGapTarget = 10;
-        int arcVertexCount = Mathf.CeilToInt(arcSize / arcVertexGapTarget);
-        float arcVertexGap = arcSize / (arcVertexCount - 1);
-
-        var arcVertices = new Vector3[arcVertexCount + 1];
-        arcVertices[0] = Vector3.zero;
-        for (int i = 0; i < arcVertexCount; i++)
-        {
-            arcVertices[i + 1] = Quaternion.Euler(0, 0, ArcVertexRotation(i)) * Vector2.up * 2;
-        }
-    
-        var arcTriangles = new int[(arcVertexCount + 1) * 3];
-        for (int i = 0; i < arcVertexCount - 1; i++)
-        {
-            arcTriangles[i * 3] = 0;
-            arcTriangles[i * 3 + 1] = i + 1;
-            arcTriangles[i * 3 + 2] = i + 2;
-        }
-
-        _arcGizmoMesh = new Mesh { vertices = arcVertices, triangles = arcTriangles };
-        _arcGizmoMesh.RecalculateNormals();
-
-        PopulateRays();
-        return;
-
-        float ArcVertexRotation(int vertex) => arcAngleOffset + (arcSize / 2) - (arcVertexGap * vertex);
-        
-    }
-    
 }
