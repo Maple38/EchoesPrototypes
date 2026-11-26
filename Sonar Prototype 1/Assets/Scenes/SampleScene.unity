@@ -223,12 +223,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfbbdb9ecff6a4befbfda7cdf4483f00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SonarEmitter
-  arcSize: 100
-  raycastCount: 10
-  arcAngleOffset: -60
+  showArc: 1
+  showRays: 1
+  showBounceLines: 1
+  hideOtherObjects: 1
+  showHits: 1
+  impactHighlightRadius: 0.2
+  hitPointRadius: 0.05
+  arcSize: 88
+  arcAngleOffset: -58
+  raycastCount: 80
   rayDistance: 15
-  enableBounces: 0
-  impactHighlightRadius: 0.5
+  enableBounces: 1
 --- !u!1 &256372576
 GameObject:
   m_ObjectHideFlags: 0

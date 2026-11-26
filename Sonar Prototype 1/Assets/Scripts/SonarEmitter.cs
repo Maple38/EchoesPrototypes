@@ -12,18 +12,20 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private bool showBounceLines;
     [SerializeField] private bool hideOtherObjects;
     [SerializeField] private bool showHits;
+    [SerializeField] private float impactHighlightRadius;
+    [SerializeField] private float hitPointRadius;
 
+    [Header("Sonar Parameters")]
     [SerializeField] private float arcSize;
-    [SerializeField] private int raycastCount;
     [SerializeField] private int arcAngleOffset;
+    [SerializeField] private int raycastCount;
     [SerializeField] private float rayDistance;
+    [SerializeField] private bool enableBounces;
 
     private int _terrainLayerMask;
-    [SerializeField] private bool enableBounces;
     private readonly List<(Vector2, Color)> _drawPoints = new List<(Vector2, Color)>();
     private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
     private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
-    [SerializeField] private float impactHighlightRadius;
 
     private Color _colorStandard = Color.green;
     private Color _colorAbsorb = Color.red;
@@ -86,8 +88,10 @@ public class SonarEmitter : MonoBehaviour
                 _drawOutlines.Add(GetHighlightLine(hit));
                 return true;
             }
+
             _drawPoints.Add((hit.point, _colorAbsorb));
         }
+
         return false;
     }
 
@@ -195,7 +199,7 @@ public class SonarEmitter : MonoBehaviour
 
             {
                 Gizmos.color = color;
-                Gizmos.DrawSphere(point, 0.07f);
+                Gizmos.DrawSphere(point, hitPointRadius);
             }
         }
 
