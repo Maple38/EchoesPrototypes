@@ -1,9 +1,18 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class SonarEmitter : MonoBehaviour
 {
+    [Header("Debug Toggles")]
+    [SerializeField] private bool showArc;
+    [SerializeField] private bool showRays;
+    [SerializeField] private bool showBounceLines;
+    [SerializeField] private bool hideOtherObjects;
+    [SerializeField] private bool showHits;
+    
     [SerializeField] private float arcSize;
     [SerializeField] private int raycastCount;
     [SerializeField] private int arcAngleOffset;
@@ -26,6 +35,17 @@ public class SonarEmitter : MonoBehaviour
     void Awake()
     {
         _terrainLayerMask = LayerMask.GetMask("Terrain");
+        var terrainLayer = LayerMask.NameToLayer("Terrain");
+        if (hideOtherObjects)
+        {
+            foreach (var obj in FindObjectsByType<GameObject>(FindObjectsSortMode.None))
+            {
+                if (obj.layer == terrainLayer)
+                {
+                    obj.GetComponent<SpriteRenderer>().enabled = false;
+                }
+            }
+        }
     }
 
     void Update()
@@ -146,25 +166,32 @@ public class SonarEmitter : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.darkGreen - new Color(0f, 0f, 0f, 0.8f);
-        Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
-
-        Gizmos.color = Color.deepPink;
-        foreach (var ray in _rayList)
+        
+        if (showArc)
         {
-            Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
+            Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
         }
 
-        if (_drawPoints != null)
+        Gizmos.color = Color.deepPink;
+        if (showRays)
+        {
+            foreach (var ray in _rayList)
+            {
+                Gizmos.DrawLine(ray.origin, ray.origin + (ray.direction * rayDistance));
+            }
+        }
+
+        if (showHits && _drawPoints != null)
         {
             foreach (var (point, color) in _drawPoints)
 
             {
                 Gizmos.color = color;
-                Gizmos.DrawSphere(point, 0.1f);
+                Gizmos.DrawSphere(point, 0.07f);
             }
         }
 
-        if (_drawBounceRays != null)
+        if (showBounceLines && _drawBounceRays != null)
         {
             Gizmos.color = _colorBounce;
             foreach (var (start, end) in _drawBounceRays)
