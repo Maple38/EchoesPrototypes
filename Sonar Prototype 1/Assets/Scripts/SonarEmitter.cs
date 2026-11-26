@@ -110,7 +110,6 @@ public class SonarEmitter : MonoBehaviour
                 rayDistance, _terrainLayerMask));
         }
 
-        Debug.Log(raycastHits[0].collider);
         return raycastHits;
     }
 
@@ -128,8 +127,10 @@ public class SonarEmitter : MonoBehaviour
             var direction = tangent * directionSign;
             var origin = hit.point + (impactHighlightRadius * direction);
             Physics2D.Raycast(origin, -direction, rayContactFilter, probeHitArray, impactHighlightRadius);
+            // _drawPoints.Add((origin, Color.mediumPurple));
             foreach (var probeHit in probeHitArray)
             {
+                // _drawPoints.Add((probeHit.point, Color.black));
                 if (probeHit.collider.gameObject == hit.collider.gameObject)
                 {
                     return probeHit.point;
@@ -159,7 +160,7 @@ public class SonarEmitter : MonoBehaviour
 
             {
                 Gizmos.color = color;
-                Gizmos.DrawSphere(point, 0.25f);
+                Gizmos.DrawSphere(point, 0.1f);
             }
         }
 
