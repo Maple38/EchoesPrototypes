@@ -34,6 +34,7 @@ public class SonarEmitter : MonoBehaviour
     private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
     private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
     private Mesh _arcGizmoMesh;
+    private Mesh _arcGizmoMeshOld;
     private List<Ray2D> _rayList;
 
     void Awake()
@@ -197,7 +198,7 @@ public class SonarEmitter : MonoBehaviour
         {
             Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
         }
-
+        
         Gizmos.color = Color.deepPink;
         if (showRays)
         {
@@ -220,17 +221,33 @@ public class SonarEmitter : MonoBehaviour
 
     private void OnValidate()
     {
-        var halfArc = arcSize / 2;
-        var arcVectorInitial = Vector2.up * 2;
-        Vector2 arcPos1 = Quaternion.Euler(0, 0, arcAngleOffset + halfArc) * arcVectorInitial;
-        Vector2 arcPos2 = Quaternion.Euler(0, 0, arcAngleOffset - halfArc) * arcVectorInitial;
-        _arcGizmoMesh = new Mesh
+        const int arcVertexGapTarget = 10;
+        int arcVertexCount = Mathf.CeilToInt(arcSize / arcVertexGapTarget);
+        float arcVertexGap = arcSize / (arcVertexCount - 1);
+
+        var arcVertices = new Vector3[arcVertexCount + 1];
+        arcVertices[0] = Vector3.zero;
+        for (int i = 0; i < arcVertexCount; i++)
         {
-            vertices = new Vector3[] { Vector3.zero, arcPos1, arcPos2 },
-            triangles = new[] { 0, 1, 2 }
-        };
+            arcVertices[i + 1] = Quaternion.Euler(0, 0, ArcVertexRotation(i)) * Vector2.up * 2;
+        }
+    
+        var arcTriangles = new int[(arcVertexCount + 1) * 3];
+        for (int i = 0; i < arcVertexCount - 1; i++)
+        {
+            arcTriangles[i * 3] = 0;
+            arcTriangles[i * 3 + 1] = i + 1;
+            arcTriangles[i * 3 + 2] = i + 2;
+        }
+
+        _arcGizmoMesh = new Mesh { vertices = arcVertices, triangles = arcTriangles };
         _arcGizmoMesh.RecalculateNormals();
 
         PopulateRays();
+        return;
+
+        float ArcVertexRotation(int vertex) => arcAngleOffset + (arcSize / 2) - (arcVertexGap * vertex);
+        
     }
+    
 }

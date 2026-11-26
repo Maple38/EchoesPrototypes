@@ -251,7 +251,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 418197190751689192, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: arcSize
-      value: 158.7
+      value: 133.8
       objectReference: {fileID: 0}
     - target: {fileID: 418197190751689192, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: showArc
@@ -275,7 +275,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 418197190751689192, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: arcAngleOffset
-      value: -60
+      value: -34
       objectReference: {fileID: 0}
     - target: {fileID: 418197190751689192, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: showBounceLines
@@ -291,7 +291,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 418197190751689192, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: impactHighlightRadius
-      value: 1.23
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2693688058086690631, guid: 9e63f0824b16a43fea0976a0e9018650, type: 3}
       propertyPath: m_LocalPosition.x
