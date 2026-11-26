@@ -12,7 +12,7 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private bool showBounceLines;
     [SerializeField] private bool hideOtherObjects;
     [SerializeField] private bool showHits;
-    
+
     [SerializeField] private float arcSize;
     [SerializeField] private int raycastCount;
     [SerializeField] private int arcAngleOffset;
@@ -77,6 +77,20 @@ public class SonarEmitter : MonoBehaviour
         }
     }
 
+    bool ParseHit(RaycastHit2D hit)
+    {
+        if (hit)
+        {
+            if (!hit.collider.CompareTag("SonarAbsorbs"))
+            {
+                _drawOutlines.Add(GetHighlightLine(hit));
+                return true;
+            }
+            _drawPoints.Add((hit.point, _colorAbsorb));
+        }
+        return false;
+    }
+
     void Sonar()
     {
         List<Ray2D> bounceRays = new List<Ray2D>();
@@ -89,19 +103,14 @@ public class SonarEmitter : MonoBehaviour
         for (var i = 0; i < raycastCount; i++)
         {
             var hit = hitList[i];
-            if (hit)
+            if (ParseHit(hit))
             {
-                Color pointColor = hit.collider.CompareTag("SonarAbsorbs")
-                    ? _colorAbsorb
-                    : _colorStandard;
+                _drawPoints.Add((hit.point, _colorStandard));
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
                     bounceRays.Add(new Ray2D(hit.point + (hit.normal * 0.01f),
                         Vector2.Reflect(_rayList[i].direction, hit.normal)));
                 }
-
-                _drawPoints.Add((hit.point, pointColor));
-                _drawOutlines.Add(GetHighlightLine(hit));
             }
         }
 
@@ -110,11 +119,10 @@ public class SonarEmitter : MonoBehaviour
             var bounceHits = FireRays(bounceRays);
             for (int i = 0; i < bounceHits.Count; i++)
             {
-                if (bounceHits[i])
+                if (ParseHit(bounceHits[i]))
                 {
                     _drawBounceRays.Add((bounceHits[i].point, bounceRays[i].origin));
                     _drawPoints.Add((bounceHits[i].point, _colorBounce));
-                    _drawOutlines.Add(GetHighlightLine(bounceHits[i]));
                 }
             }
         }
@@ -166,7 +174,7 @@ public class SonarEmitter : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.darkGreen - new Color(0f, 0f, 0f, 0.8f);
-        
+
         if (showArc)
         {
             Gizmos.DrawMesh(_arcGizmoMesh, transform.position);
