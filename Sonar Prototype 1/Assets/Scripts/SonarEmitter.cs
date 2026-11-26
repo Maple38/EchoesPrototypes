@@ -14,17 +14,16 @@ public class SonarEmitter : MonoBehaviour
     private readonly List<(Vector2, Color)> _drawPoints = new List<(Vector2, Color)>();
     private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
     private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
-    private Color _colorStandard;
-    private Color _colorAbsorb;
-    private Color _colorBounce;
-    private Color _colorOutline;
+    private Color _colorStandard = Color.green;
+    private Color _colorAbsorb = Color.red;
+    private Color _colorBounce = Color.yellowNice;
+    private Color _colorOutline = Color.turquoise;
     private Mesh _arcGizmoMesh;
-    private Ray2D[] _rayGizmos;
     private List<Ray2D> _rayList;
 
     void Awake()
     {
-        _terrainLayerMask = LayerMask.NameToLayer("Terrain");
+        _terrainLayerMask = LayerMask.GetMask("Terrain");
     }
 
     void Update()
@@ -75,7 +74,7 @@ public class SonarEmitter : MonoBehaviour
                     : _colorStandard;
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
-                    bounceRays.Add(new Ray2D(hit.point, Vector2.Reflect(_rayList[i].direction, hit.normal)));
+                    bounceRays.Add(new Ray2D(hit.point + (hit.normal * 0.01f), Vector2.Reflect(_rayList[i].direction, hit.normal)));
                 }
 
                 _drawPoints.Add((hit.point, pointColor));
@@ -105,6 +104,7 @@ public class SonarEmitter : MonoBehaviour
                 rayDistance, _terrainLayerMask));
         }
 
+        Debug.Log(raycastHits[0].collider);
         return raycastHits;
     }
 
