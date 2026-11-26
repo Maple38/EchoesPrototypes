@@ -10,6 +10,7 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private bool showArc;
     [SerializeField] private bool showRays;
     [SerializeField] private bool showBounceLines;
+    [SerializeField] private bool showFailedBounces;
     [SerializeField] private bool hideOtherObjects;
     [SerializeField] private bool showHits;
     [SerializeField] private float impactHighlightRadius;
@@ -22,15 +23,16 @@ public class SonarEmitter : MonoBehaviour
     [SerializeField] private float rayDistance;
     [SerializeField] private bool enableBounces;
 
+    [Header("Colors")]
+    [SerializeField] private Color colorStandard = Color.green;
+    [SerializeField] private Color colorAbsorb = Color.red;
+    [SerializeField] private Color colorBounce = Color.yellowNice;
+    [SerializeField] private Color colorOutline = Color.turquoise;
+
     private int _terrainLayerMask;
     private readonly List<(Vector2, Color)> _drawPoints = new List<(Vector2, Color)>();
     private readonly List<(Vector2, Vector2)> _drawBounceRays = new List<(Vector2, Vector2)>();
     private readonly List<(Vector2, Vector2)> _drawOutlines = new List<(Vector2, Vector2)>();
-
-    private Color _colorStandard = Color.green;
-    private Color _colorAbsorb = Color.red;
-    private Color _colorBounce = Color.yellowNice;
-    private Color _colorOutline = Color.turquoise;
     private Mesh _arcGizmoMesh;
     private List<Ray2D> _rayList;
 
@@ -61,7 +63,15 @@ public class SonarEmitter : MonoBehaviour
         {
             foreach (var (start, end) in _drawOutlines)
             {
-                Debug.DrawLine(start, end, _colorOutline);
+                Debug.DrawLine(start, end, colorOutline);
+            }
+        }
+
+        if (showBounceLines && _drawBounceRays != null)
+        {
+            foreach (var (start, end) in _drawBounceRays)
+            {
+                Debug.DrawLine(start, end, colorBounce);
             }
         }
     }
@@ -89,7 +99,7 @@ public class SonarEmitter : MonoBehaviour
                 return true;
             }
 
-            _drawPoints.Add((hit.point, _colorAbsorb));
+            _drawPoints.Add((hit.point, colorAbsorb));
         }
 
         return false;
@@ -109,7 +119,7 @@ public class SonarEmitter : MonoBehaviour
             var hit = hitList[i];
             if (ParseHit(hit))
             {
-                _drawPoints.Add((hit.point, _colorStandard));
+                _drawPoints.Add((hit.point, colorStandard));
                 if (hit.collider.CompareTag("SonarBounces"))
                 {
                     bounceRays.Add(new Ray2D(hit.point + (hit.normal * 0.01f),
@@ -125,8 +135,12 @@ public class SonarEmitter : MonoBehaviour
             {
                 if (ParseHit(bounceHits[i]))
                 {
-                    _drawBounceRays.Add((bounceHits[i].point, bounceRays[i].origin));
-                    _drawPoints.Add((bounceHits[i].point, _colorBounce));
+                    _drawBounceRays.Add((bounceRays[i].origin, bounceHits[i].point));
+                    _drawPoints.Add((bounceHits[i].point, colorBounce));
+                }
+                else if (showFailedBounces)
+                {
+                    _drawBounceRays.Add((bounceRays[i].origin, bounceRays[i].direction * rayDistance));
                 }
             }
         }
@@ -200,15 +214,6 @@ public class SonarEmitter : MonoBehaviour
             {
                 Gizmos.color = color;
                 Gizmos.DrawSphere(point, hitPointRadius);
-            }
-        }
-
-        if (showBounceLines && _drawBounceRays != null)
-        {
-            Gizmos.color = _colorBounce;
-            foreach (var (start, end) in _drawBounceRays)
-            {
-                Gizmos.DrawLine(start, end);
             }
         }
     }

@@ -226,15 +226,20 @@ MonoBehaviour:
   showArc: 1
   showRays: 1
   showBounceLines: 1
-  hideOtherObjects: 1
+  showFailedBounces: 1
+  hideOtherObjects: 0
   showHits: 1
   impactHighlightRadius: 0.2
   hitPointRadius: 0.05
   arcSize: 88
   arcAngleOffset: -58
-  raycastCount: 80
+  raycastCount: 168
   rayDistance: 15
   enableBounces: 1
+  colorStandard: {r: 0, g: 1, b: 0, a: 1}
+  colorAbsorb: {r: 1, g: 0, b: 0, a: 1}
+  colorBounce: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  colorOutline: {r: 0.2509804, g: 0.8784314, b: 0.8156863, a: 1}
 --- !u!1 &256372576
 GameObject:
   m_ObjectHideFlags: 0
